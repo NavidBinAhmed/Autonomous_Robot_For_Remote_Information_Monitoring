@@ -1,4 +1,4 @@
-An artificially intelligent line follower vehicular robot was developed using Plolu QTR RC sensor array.
+An artificially intelligent line follower vehicular robot was developed using Pololu QTR RC sensor array.
 
 DHT11 sensor integrated with the robot enables it to monitor, and transmit the temperature and humity information to
 a remote receiver for real time monitoring purpose. 433 Mhz ASK RF transmitter and receiver modules were
