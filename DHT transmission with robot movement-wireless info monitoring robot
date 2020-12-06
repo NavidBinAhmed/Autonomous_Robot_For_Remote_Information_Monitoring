@@ -1,0 +1,133 @@
+//Copyright-navid, navid_bin_ahmed@yahoo.com DHT data transmission with robot movement 
+
+
+int pin8= 8;
+int pin9=9;
+int pin10=10;
+
+int sensorValue8=0;
+int sensorValue9=0;
+int sensorValue10=0;
+
+int rF = 5;
+int rB = 7;
+int lF = 2;
+int lB = 4;
+
+// Generally, you should use "unsigned long" for variables that hold time
+// The value will quickly become too large for an int to store
+unsigned long previousMillis = 0;        // will store last time LED was updated
+
+// constants won't change :
+const long interval = 5000;           // interval at which to update tem. and hum. data (milliseconds)
+
+// Include needed libraries
+#include <VirtualWire.h>
+#include <DHT.h>
+
+// Defininition
+#define dhtPin 11
+#define dhtType DHT11
+#define txPowerPin 13
+
+// using the DHT library
+DHT dht(dhtPin, dhtType);
+
+// Variables
+char msg0[3];
+char msg1[3];
+
+int tem = 0;
+int hum = 0;
+
+void setup() {
+  Serial.begin(9600); //debug purpose, comment it out after debugging finished
+  //for linefollower
+  pinMode(rF, OUTPUT);
+  pinMode(rB, OUTPUT); 
+  pinMode(lF, OUTPUT); 
+  pinMode(lB, OUTPUT);
+//for transmission_receiving
+  pinMode(txPowerPin, OUTPUT);
+  pinMode(txPowerPin, LOW);
+  vw_setup(4800);     // VirtualWire communication speed
+  vw_set_tx_pin(12);  // VirtualWire transmit pin
+}
+
+void loop() {
+
+  // check to see if it's time to update tem. and hum. data; that is, if the
+  // difference between the current time and last time you updated
+  // the tem. and hum. data is bigger than the interval at which you want to
+  // update tem. and hum. data.
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= interval) {
+     unsigned long startTime = millis(); //debug purpose, comment it out after debugging finished
+    //for transmission receiving
+    digitalWrite(txPowerPin, HIGH);  
+    hum = dht.readHumidity();             // Variable holding humidity
+    tem = dht.readTemperature();          // Variable holding temperature
+    itoa(hum, msg1, 10);                  // Converting humidity to an array of chars
+    itoa(tem, msg0, 10);                   // Converting the temperature to an array of chars  
+    strcat(msg0, msg1);                    // Adding/joining the two arrays
+    vw_send((uint8_t *)msg0, strlen(msg0)); // Sending the msg
+    vw_wait_tx();                         // Wait for tx to finish
+    digitalWrite(txPowerPin, LOW);
+    // save the last time you updated the tem. and hum. data
+    previousMillis = currentMillis;
+    unsigned long stopTime = millis(); //debug purpose, comment it out after debugging finished
+    Serial.print("Time(mS) for updating tem and hum sensor: "); //debug purpose, comment it out after debugging finished
+    Serial.println(stopTime - startTime); //debug purpose, comment it out after debugging finished
+  }
+//delay(5000);//delay replaced by if condition written above                          // Wait five seconds and it again
+//for line follower
+pinMode(pin8, OUTPUT);   
+pinMode(pin9, OUTPUT);
+pinMode(pin10,OUTPUT);
+
+digitalWrite(pin8, HIGH);   
+digitalWrite(pin9, HIGH);
+digitalWrite(pin10,HIGH);
+delay(1);
+
+pinMode(pin8, INPUT);   
+pinMode(pin9, INPUT);
+pinMode(pin10,INPUT);
+delay(1);
+
+sensorValue8=digitalRead(pin8);
+sensorValue9=digitalRead(pin9);
+sensorValue10=digitalRead(pin10);
+
+if (sensorValue8==LOW && sensorValue9==HIGH && sensorValue10==LOW) //010-F
+{
+digitalWrite(rF, HIGH);     //forward
+digitalWrite(rB, LOW);
+digitalWrite(lF, HIGH);
+digitalWrite(lB, LOW);
+}
+else if (sensorValue8==LOW && sensorValue9==LOW &&  sensorValue10==HIGH) //001-turn L
+{
+  digitalWrite(rF, HIGH);   //left
+  digitalWrite(rB, LOW);
+  digitalWrite(lF, LOW);
+  digitalWrite(lB, HIGH);
+  delayMicroseconds(1);
+}
+else if (sensorValue8==HIGH && sensorValue9==LOW &&  sensorValue10==LOW) //100-turn R 
+{
+  digitalWrite(rF, LOW);     //right
+  digitalWrite(rB, HIGH);  
+  digitalWrite(lF, HIGH); 
+  digitalWrite(lB, LOW);
+  delayMicroseconds(1);
+}
+ 
+ else if (sensorValue8==LOW && sensorValue9==LOW &&  sensorValue10==LOW) //000-B
+{
+  digitalWrite(rB, HIGH);   //back
+  digitalWrite(lB, HIGH); 
+  delayMicroseconds(1);
+}
+}
