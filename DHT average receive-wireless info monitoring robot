@@ -66,7 +66,7 @@ void Temp1() {
     for (i=2;i<4;i++)              // Get the two last bytes
     {
       Serial.write(buf[i]);                // Debugging
-      lcd.write(buf[i]);                    // Write the last bytes on the LCD
+      lcd.write(buf[i]);                    // Write the last bytes on the lcd
     }  
   lcd.print("% RH");      
   }
